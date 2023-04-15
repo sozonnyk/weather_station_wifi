@@ -121,9 +121,9 @@ void setup() {
 	WiFi.macAddress(mac);
 	device.setUniqueId(mac, sizeof(mac));
 	device.setName("Weather Station");
+	device.setModel("Weather Station");
 	device.setSoftwareVersion("1.0.0");
 	device.setManufacturer("Andrew");
-	device.setModel("Weather Station");
 
 	sunLightLux.setIcon("mdi:weather-sunny");
 	sunLightLux.setName("Brightness");
@@ -149,7 +149,7 @@ void setup() {
 	rain_hour.setName("Rain Hourly");
 	rain_hour.setUnitOfMeasurement("mm");
 
-	mqtt.begin(MQTT_ID, MQTT_USER, MQTT_PASSWD);
+	mqtt.begin(MQTT_HOST, MQTT_USER, MQTT_PASSWD);
 }
 
 void loop() {
