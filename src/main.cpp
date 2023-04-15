@@ -78,7 +78,8 @@ float getLux() {
 
 void IRAM_ATTR onRainPulse() {
 	unsigned long currentTime = micros() / 1000;
-	if (currentTime < lastInterrupt + INTERRUPT_DELAY_MS) return;
+	if (currentTime < lastInterrupt + INTERRUPT_DELAY_MS)
+		return;
 	lastInterrupt = currentTime;
 	rainDayValue += RAIN_FACTOR;
 	rainHourValue += RAIN_FACTOR;
@@ -95,7 +96,7 @@ void initWifi() {
 	Serial.println(WiFi.localIP());
 }
 
-void initTime(){
+void initTime() {
 	configTime(0, 0, NTP_SERVER);
 	setenv("TZ", TZ_DEF, 1);
 	tzset();
@@ -119,39 +120,37 @@ void setup() {
 	byte mac[6];
 	WiFi.macAddress(mac);
 	device.setUniqueId(mac, sizeof(mac));
-    device.setName("Weather Station");
-    device.setSoftwareVersion("1.0.0");
-    device.setManufacturer("Andrew");
-    device.setModel("Weather Station");
+	device.setName("Weather Station");
+	device.setSoftwareVersion("1.0.0");
+	device.setManufacturer("Andrew");
+	device.setModel("Weather Station");
 
-    sunLightLux.setIcon("mdi:weather-sunny");
-    sunLightLux.setName("Brightness");
-    sunLightLux.setUnitOfMeasurement("Lux");
+	sunLightLux.setIcon("mdi:weather-sunny");
+	sunLightLux.setName("Brightness");
+	sunLightLux.setUnitOfMeasurement("Lux");
 
-    sunLightUv.setIcon("mdi:sun-wireless-outline");
-    sunLightUv.setName("UV Index");
-    sunLightUv.setUnitOfMeasurement("UVI");
+	sunLightUv.setIcon("mdi:sun-wireless-outline");
+	sunLightUv.setName("UV Index");
+	sunLightUv.setUnitOfMeasurement("UVI");
 
-    rssi.setIcon("mdi:wifi");
-    rssi.setName("RSSI");
-    rssi.setUnitOfMeasurement("RSSI");
+	rssi.setIcon("mdi:wifi");
+	rssi.setName("RSSI");
+	rssi.setUnitOfMeasurement("RSSI");
 
-    wind.setIcon("mdi:weather-windy");
-    wind.setName("Wind");
-    wind.setUnitOfMeasurement("kmh");
+	wind.setIcon("mdi:weather-windy");
+	wind.setName("Wind");
+	wind.setUnitOfMeasurement("kmh");
 
-    rain_day.setIcon("mdi:weather-pouring");
-    rain_day.setName("Rain Daily");
-    rain_day.setUnitOfMeasurement("mm");
+	rain_day.setIcon("mdi:weather-pouring");
+	rain_day.setName("Rain Daily");
+	rain_day.setUnitOfMeasurement("mm");
 
-    rain_hour.setIcon("mdi:weather-pouring");
-    rain_hour.setName("Rain Hourly");
-    rain_hour.setUnitOfMeasurement("mm");
+	rain_hour.setIcon("mdi:weather-pouring");
+	rain_hour.setName("Rain Hourly");
+	rain_hour.setUnitOfMeasurement("mm");
 
-    mqtt.begin(MQTT_ID, MQTT_USER, MQTT_PASSWD);
+	mqtt.begin(MQTT_ID, MQTT_USER, MQTT_PASSWD);
 }
-
-
 
 void loop() {
 	struct tm time;
@@ -163,31 +162,28 @@ void loop() {
 
 		if (WiFi.status() != WL_CONNECTED) {
 			Serial.println("WiFi lost");
-		    WiFi.disconnect();
-		    WiFi.reconnect();
+			WiFi.disconnect();
+			WiFi.reconnect();
 			if (WiFi.waitForConnectResult(WIFI_WAIT_TIME_MS) != WL_CONNECTED) {
-					Serial.println("Unable to connect WiFi");
-					return;
-				}
+				Serial.println("Unable to connect WiFi");
+				return;
+			}
 		}
 
-		if(time.tm_hour != previousHour) {
+		if (time.tm_hour != previousHour) {
 			previousHour = time.tm_hour;
 			rainHourValue = 0;
 		}
 
-
-		if(time.tm_yday != previousDay) {
+		if (time.tm_yday != previousDay) {
 			previousDay = time.tm_yday;
 			rainDayValue = 0;
 		}
-
 
 		float windValue = getWind();
 		float luxValue = getLux();
 		float uvValue = getUvi();
 		int8_t rssiValue = WiFi.RSSI();
-
 
 		Serial.print("Wind raw ");
 		Serial.println(windValue);
