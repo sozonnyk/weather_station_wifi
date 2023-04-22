@@ -5,6 +5,10 @@
 #include <LTR390.h>
 #include <ArduinoHA.h>
 
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <AsyncElegantOTA.h>
+
 #define WIND_UART  2
 #define RAIN_INPUT 2
 #define DWELL_TIME 100 //ms
@@ -21,6 +25,8 @@ volatile unsigned long lastInterrupt = 0;
 int previousMinute = -1;
 int previousHour = -1;
 int previousDay = -1;
+
+AsyncWebServer server(80);
 
 HardwareSerial windSerial(WIND_UART);
 ModbusMaster node;
@@ -78,6 +84,8 @@ float getLux() {
 
 void IRAM_ATTR onRainPulse() {
 	unsigned long currentTime = micros() / 1000;
+	if (currentTime < lastInterrupt)
+		lastInterrupt = -1;
 	if (currentTime < lastInterrupt + INTERRUPT_DELAY_MS)
 		return;
 	lastInterrupt = currentTime;
@@ -86,6 +94,9 @@ void IRAM_ATTR onRainPulse() {
 }
 
 void initWifi() {
+	WiFi.setHostname("weatherstation");
+	WiFi.mode(WIFI_STA);
+	WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
 	WiFi.begin(WIFI_SSID, WIFI_PASSWD);
 	while (WiFi.waitForConnectResult(WIFI_WAIT_TIME_MS) != WL_CONNECTED) {
 		Serial.println("WiFi failed. Rebooting...");
@@ -102,6 +113,15 @@ void initTime() {
 	tzset();
 }
 
+void initOta() {
+	server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+		request->send(200, "text/plain", "Weather station");
+	});
+
+	AsyncElegantOTA.begin(&server);
+	server.begin();
+}
+
 void setup() {
 	Serial.begin(115200);
 	Serial.println("Start");
@@ -116,6 +136,7 @@ void setup() {
 
 	initWifi();
 	initTime();
+	initOta();
 
 	byte mac[6];
 	WiFi.macAddress(mac);
@@ -175,8 +196,8 @@ void loop() {
 			rainHourValue = 0;
 		}
 
-		if (time.tm_yday != previousDay) {
-			previousDay = time.tm_yday;
+		if (time.tm_mday != previousDay) {
+			previousDay = time.tm_mday;
 			rainDayValue = 0;
 		}
 
