@@ -29,7 +29,7 @@ int previousDay = -1;
 AsyncWebServer server(80);
 
 HardwareSerial windSerial(WIND_UART);
-ModbusMaster node;
+ModbusMaster mainMeterNode;
 LTR390 ltr390(0x53);
 
 WiFiClient client;
@@ -47,9 +47,9 @@ float getWind() {
 	uint16_t startAddress = 0x0000;
 	uint8_t length = 2;
 	uint16_t result;
-	result = node.readInputRegisters(startAddress, length);
-	if (result == node.ku8MBSuccess) {
-		return node.getResponseBuffer(0) * 0.36;
+	result = mainMeterNode.readInputRegisters(startAddress, length);
+	if (result == mainMeterNode.ku8MBSuccess) {
+		return mainMeterNode.getResponseBuffer(0) * 0.36;
 	} else {
 		return 0;
 	}
@@ -127,7 +127,7 @@ void setup() {
 	Serial.println("Start");
 
 	windSerial.begin(4800);
-	node.begin(1, windSerial);
+	mainMeterNode.begin(1, windSerial);
 	Wire.begin();
 	ltr390.init();
 
