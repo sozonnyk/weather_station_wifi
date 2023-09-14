@@ -9,6 +9,8 @@
 #include <ESPAsyncWebServer.h>
 #include <AsyncElegantOTA.h>
 
+#define WDT_SECONDS 5 * 60
+
 #define WIND_UART  2
 #define RAIN_INPUT 2
 #define DWELL_TIME 100 //ms
@@ -123,6 +125,9 @@ void initOta() {
 }
 
 void setup() {
+	esp_task_wdt_init(WDT_SECONDS, true);
+	esp_task_wdt_add(NULL);
+
 	Serial.begin(115200);
 	Serial.println("Start");
 
@@ -178,6 +183,7 @@ void loop() {
 	getLocalTime(&time);
 
 	if (time.tm_min != previousMinute) {
+		esp_task_wdt_reset();
 		previousMinute = time.tm_min;
 		Serial.println(&time, "%A, %B %d %Y %H:%M:%S");
 
