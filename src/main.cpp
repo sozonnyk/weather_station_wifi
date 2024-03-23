@@ -15,6 +15,7 @@
 #define RAIN_INPUT 2
 #define DWELL_TIME 100 //ms
 #define RAIN_FACTOR 0.28 //mm per pulse
+#define UV_FACTOR 1950.0 //Emperic value
 #define INTERRUPT_DELAY_MS 100 //Ignore interrupts for the time
 #define WIFI_WAIT_TIME_MS 10000
 #define TZ_DEF "AEST-10AEDT,M10.1.0,M4.1.0/3"
@@ -39,7 +40,7 @@ HADevice device;
 HAMqtt mqtt(client, device, 7);
 
 HASensorNumber sunLightLux("sun_light_lux", HASensorNumber::PrecisionP0);
-HASensorNumber sunLightUv("sun_light_uv", HASensorNumber::PrecisionP0);
+HASensorNumber sunLightUv("sun_light_uv", HASensorNumber::PrecisionP1);
 HASensorNumber wind("wind", HASensorNumber::PrecisionP1);
 HASensorNumber rain_day("rain_day", HASensorNumber::PrecisionP2);
 HASensorNumber rain_hour("rain_hour", HASensorNumber::PrecisionP2);
@@ -66,7 +67,7 @@ float getUvi() {
 		delay(DWELL_TIME * 5);
 	} while (!ltr390.newDataAvailable());
 
-	float uvi = ltr390.readUVS(); //ltr390.getUVI();
+	float uvi = (float) ltr390.readUVS() / UV_FACTOR; //ltr390.getUVI();
 	return uvi;
 }
 
