@@ -9,6 +9,9 @@
 #include <ESPAsyncWebServer.h>
 #include <AsyncElegantOTA.h>
 
+#include <SPI.h>
+#include <SFFS.h>
+
 #define WDT_SECONDS 5 * 60
 
 #define WIND_UART  2
@@ -34,6 +37,10 @@ AsyncWebServer server(80);
 HardwareSerial windSerial(WIND_UART);
 ModbusMaster mainMeterNode;
 LTR390 ltr390(0x53);
+
+#define FORCE_NEW_VOLUME false
+SFFS_Volume_I2C ffsVolume;   // I2C FRAM FileSystem instance
+SFFS_File ffsFile(ffsVolume); // The file instance we will use
 
 WiFiClient client;
 HADevice device;
@@ -125,6 +132,22 @@ void initOta() {
 	server.begin();
 }
 
+void initFram() {
+	  ffsVolume.begin(I2C_DEFAULT_ADDRESS);
+	  if (FORCE_NEW_VOLUME || ffsVolume.VolumeName()==NULL) {
+	    Serial.println("Create new FRAM volume");
+	    if (ffsVolume.VolumeCreate("Volume_1")==false) {
+	      Serial.println("FAILED: Cannot create FRAM volume");
+	    }
+	  }
+	  Serial.print("FRAM volume '");
+	  Serial.print(ffsVolume.VolumeName());
+	  Serial.print("' size ");
+	  Serial.print(ffsVolume.VolumeSize());
+	  Serial.print(", available ");
+	  Serial.println(ffsVolume.VolumeFree());
+}
+
 void setup() {
 	esp_task_wdt_init(WDT_SECONDS, true);
 	esp_task_wdt_add(NULL);
@@ -143,6 +166,7 @@ void setup() {
 	initWifi();
 	initTime();
 	initOta();
+	initFram();
 
 	byte mac[6];
 	WiFi.macAddress(mac);
